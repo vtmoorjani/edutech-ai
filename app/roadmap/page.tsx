@@ -51,22 +51,30 @@ function RoadmapInner() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [needsLogin, setNeedsLogin] = useState(false);
+
+  const [noData, setNoData] = useState(false);
 
   // Load from sessionStorage.
   useEffect(() => {
     const p = sessionStorage.getItem("skillpath:profile");
     const r = sessionStorage.getItem("skillpath:roadmap");
     const s = sessionStorage.getItem("skillpath:selected_recs");
+
     if (!p || !r || !s) {
-      router.replace("/intake");
+      setNoData(true);
       return;
     }
-    const parsedRoadmap = JSON.parse(r) as RoadmapResultT;
-    setProfile(JSON.parse(p));
-    setRoadmap(parsedRoadmap);
-    setPhases(parsedRoadmap.phases);
-    setSelectedRecs(JSON.parse(s));
-  }, [router]);
+    try {
+      const parsedRoadmap = JSON.parse(r) as RoadmapResultT;
+      setProfile(JSON.parse(p));
+      setRoadmap(parsedRoadmap);
+      setPhases(parsedRoadmap.phases);
+      setSelectedRecs(JSON.parse(s));
+    } catch {
+      setNoData(true);
+    }
+  }, []);
 
   const courseLookup = useMemo(() => {
     const map = new Map<string, Course>();
@@ -84,9 +92,12 @@ function RoadmapInner() {
   );
 
   const savePlan = useCallback(async () => {
-    if (!profile || !roadmap || !selectedRecs || !phases) return;
+    if (!profile || !roadmap || !selectedRecs || !phases) {
+      return;
+    }
     setSaving(true);
     setSaveError(null);
+    setNeedsLogin(false);
     try {
       const supabase = createClient();
       const {
@@ -94,30 +105,22 @@ function RoadmapInner() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        // Mark intent so we resume after OAuth.
-        sessionStorage.setItem(SAVE_PENDING_KEY, "1");
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/roadmap?save=1")}`,
-          },
-        });
-        if (error) {
-          setSaveError(error.message);
-          setSaving(false);
-        }
+        setNeedsLogin(true);
+        setSaving(false);
         return;
       }
 
+      const payload = {
+        profile,
+        gap: JSON.parse(sessionStorage.getItem("skillpath:gap") || "null"),
+        recommendations: selectedRecs.map(({ course: _course, ...r }) => r),
+        roadmap: { ...roadmap, phases },
+      };
+      
       const res = await fetch("/api/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          profile,
-          gap: JSON.parse(sessionStorage.getItem("skillpath:gap") || "null"),
-          recommendations: selectedRecs.map(({ course: _course, ...r }) => r),
-          roadmap: { ...roadmap, phases },
-        }),
+        body: JSON.stringify(payload),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -134,14 +137,38 @@ function RoadmapInner() {
     }
   }, [profile, roadmap, selectedRecs, phases, router]);
 
+  // Handle login redirect
+  function handleLogin() {
+    sessionStorage.setItem(SAVE_PENDING_KEY, "1");
+    router.push(`/auth/login?next=${encodeURIComponent("/roadmap?save=1")}`);
+  }
+
   // Auto-resume save after OAuth roundtrip.
   useEffect(() => {
     if (!profile || !roadmap || !selectedRecs) return;
     const pending = sessionStorage.getItem(SAVE_PENDING_KEY);
     if (pending === "1" && searchParams.get("save") === "1") {
+      setNeedsLogin(false);
       void savePlan();
     }
   }, [profile, roadmap, selectedRecs, searchParams, savePlan]);
+
+  if (noData) {
+    return (
+      <main className="mx-auto w-full max-w-3xl px-6 py-12">
+        <h1 className="text-2xl font-semibold">No roadmap data found</h1>
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+          You need to complete the intake flow first to generate a roadmap.
+        </p>
+        <Link
+          href="/intake"
+          className="mt-4 inline-flex h-10 items-center rounded-full bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+        >
+          Start intake
+        </Link>
+      </main>
+    );
+  }
 
   if (!roadmap || !profile || !selectedRecs || !phases) {
     return (
@@ -294,6 +321,29 @@ function RoadmapInner() {
         </a>
       </div>
 
+      {needsLogin && (
+        <div className="mt-4 rounded-lg border border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
+          <p className="text-sm font-medium">Sign in to save your plan</p>
+          <p className="mt-1 text-xs text-zinc-500">
+            Create an account or sign in to save your roadmap.
+          </p>
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={handleLogin}
+              className="inline-flex h-10 items-center rounded-full bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              Sign in
+            </button>
+            <button
+              onClick={() => setNeedsLogin(false)}
+              className="inline-flex h-10 items-center rounded-full border border-zinc-300 px-5 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       {saveError && (
         <div className="mt-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
           {saveError}
@@ -301,7 +351,7 @@ function RoadmapInner() {
       )}
 
       <p className="mt-6 text-xs text-zinc-500">
-        Saving requires Google sign-in. AI-generated. Edit any phase name or
+        Saving requires sign-in. AI-generated. Edit any phase name or
         duration above before saving.
       </p>
     </main>

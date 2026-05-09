@@ -32,7 +32,7 @@ export const SkillGap = z.object({
 });
 
 export const SkillGapResult = z.object({
-  summary: z.string().max(800),
+  summary: z.string().max(1500),
   transferable_strengths: z.array(z.string().max(200)).max(10),
   gaps: z.array(SkillGap).min(1).max(20),
   adjacent_skills_to_prioritize: z.array(z.string().max(120)).max(10),

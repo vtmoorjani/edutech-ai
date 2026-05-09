@@ -137,20 +137,10 @@ function RoadmapInner() {
     }
   }, [profile, roadmap, selectedRecs, phases, router]);
 
-  // Handle Google login
-  async function handleLogin() {
+  // Handle login redirect
+  function handleLogin() {
     sessionStorage.setItem(SAVE_PENDING_KEY, "1");
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ?? 
-          `${window.location.origin}/auth/callback?next=${encodeURIComponent("/roadmap?save=1")}`,
-      },
-    });
-    if (error) {
-      setSaveError(error.message);
-    }
+    router.push(`/auth/login?next=${encodeURIComponent("/roadmap?save=1")}`);
   }
 
   // Auto-resume save after OAuth roundtrip.
@@ -335,14 +325,14 @@ function RoadmapInner() {
         <div className="mt-4 rounded-lg border border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
           <p className="text-sm font-medium">Sign in to save your plan</p>
           <p className="mt-1 text-xs text-zinc-500">
-            We use Google sign-in to save your roadmap securely.
+            Create an account or sign in to save your roadmap.
           </p>
           <div className="mt-3 flex gap-2">
             <button
               onClick={handleLogin}
               className="inline-flex h-10 items-center rounded-full bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
-              Sign in with Google
+              Sign in
             </button>
             <button
               onClick={() => setNeedsLogin(false)}
@@ -361,7 +351,7 @@ function RoadmapInner() {
       )}
 
       <p className="mt-6 text-xs text-zinc-500">
-        Saving requires Google sign-in. AI-generated. Edit any phase name or
+        Saving requires sign-in. AI-generated. Edit any phase name or
         duration above before saving.
       </p>
     </main>

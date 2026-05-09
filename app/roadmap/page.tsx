@@ -51,6 +51,7 @@ function RoadmapInner() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [needsLogin, setNeedsLogin] = useState(false);
 
   const [noData, setNoData] = useState(false);
 
@@ -59,7 +60,7 @@ function RoadmapInner() {
     const p = sessionStorage.getItem("skillpath:profile");
     const r = sessionStorage.getItem("skillpath:roadmap");
     const s = sessionStorage.getItem("skillpath:selected_recs");
-    console.log("[v0] Loading roadmap data:", { hasProfile: !!p, hasRoadmap: !!r, hasSelectedRecs: !!s });
+
     if (!p || !r || !s) {
       setNoData(true);
       return;
@@ -70,8 +71,7 @@ function RoadmapInner() {
       setRoadmap(parsedRoadmap);
       setPhases(parsedRoadmap.phases);
       setSelectedRecs(JSON.parse(s));
-    } catch (err) {
-      console.log("[v0] Error parsing roadmap data:", err);
+    } catch {
       setNoData(true);
     }
   }, []);
@@ -92,33 +92,21 @@ function RoadmapInner() {
   );
 
   const savePlan = useCallback(async () => {
-    console.log("[v0] savePlan called", { profile, roadmap, selectedRecs, phases });
     if (!profile || !roadmap || !selectedRecs || !phases) {
-      console.log("[v0] Missing data, aborting save");
       return;
     }
     setSaving(true);
     setSaveError(null);
+    setNeedsLogin(false);
     try {
       const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      console.log("[v0] User check:", user ? user.id : "not logged in");
 
       if (!user) {
-        // Mark intent so we resume after OAuth.
-        sessionStorage.setItem(SAVE_PENDING_KEY, "1");
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/roadmap?save=1")}`,
-          },
-        });
-        if (error) {
-          setSaveError(error.message);
-          setSaving(false);
-        }
+        setNeedsLogin(true);
+        setSaving(false);
         return;
       }
 
@@ -128,7 +116,6 @@ function RoadmapInner() {
         recommendations: selectedRecs.map(({ course: _course, ...r }) => r),
         roadmap: { ...roadmap, phases },
       };
-      console.log("[v0] Saving plan with payload:", payload);
       
       const res = await fetch("/api/save", {
         method: "POST",
@@ -136,7 +123,6 @@ function RoadmapInner() {
         body: JSON.stringify(payload),
       });
       const json = await res.json();
-      console.log("[v0] Save API response:", res.status, json);
       if (!res.ok) {
         setSaveError(json.error || "Save failed");
         setSaving(false);
@@ -151,11 +137,28 @@ function RoadmapInner() {
     }
   }, [profile, roadmap, selectedRecs, phases, router]);
 
+  // Handle Google login
+  async function handleLogin() {
+    sessionStorage.setItem(SAVE_PENDING_KEY, "1");
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ?? 
+          `${window.location.origin}/auth/callback?next=${encodeURIComponent("/roadmap?save=1")}`,
+      },
+    });
+    if (error) {
+      setSaveError(error.message);
+    }
+  }
+
   // Auto-resume save after OAuth roundtrip.
   useEffect(() => {
     if (!profile || !roadmap || !selectedRecs) return;
     const pending = sessionStorage.getItem(SAVE_PENDING_KEY);
     if (pending === "1" && searchParams.get("save") === "1") {
+      setNeedsLogin(false);
       void savePlan();
     }
   }, [profile, roadmap, selectedRecs, searchParams, savePlan]);
@@ -327,6 +330,29 @@ function RoadmapInner() {
           Share on LinkedIn
         </a>
       </div>
+
+      {needsLogin && (
+        <div className="mt-4 rounded-lg border border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
+          <p className="text-sm font-medium">Sign in to save your plan</p>
+          <p className="mt-1 text-xs text-zinc-500">
+            We use Google sign-in to save your roadmap securely.
+          </p>
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={handleLogin}
+              className="inline-flex h-10 items-center rounded-full bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              Sign in with Google
+            </button>
+            <button
+              onClick={() => setNeedsLogin(false)}
+              className="inline-flex h-10 items-center rounded-full border border-zinc-300 px-5 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {saveError && (
         <div className="mt-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">

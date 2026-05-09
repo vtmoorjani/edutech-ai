@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       user_id: user.id,
       name: name || `${profile.target_role} Learning Plan`,
       profile_data: profile,
-      skill_gaps: gap || { gaps: [], transferable_strengths: [], adjacent_skills_to_prioritize: [] },
+      skill_gaps: gap || { summary: "", gaps: [], transferable_strengths: [], adjacent_skills_to_prioritize: [] },
       recommendations: validRecs,
       roadmap: roadmap,
       status: "active",

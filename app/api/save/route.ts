@@ -27,6 +27,7 @@ const Body = z.object({
   gap: SkillGapResult,
   recommendations: z.array(SavedRec),
   roadmap: RoadmapResult,
+  name: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { profile, gap, recommendations, roadmap } = parsed.data;
+  const { profile, gap, recommendations, roadmap, name } = parsed.data;
 
   // Drop any course IDs that aren't in the catalog (defensive).
   const validRecs = recommendations.filter((r) => COURSE_BY_ID[r.course_id]);
@@ -64,86 +65,29 @@ export async function POST(request: Request) {
     );
   }
 
-  // Upsert profile.
-  const { error: profErr } = await supabase.from("profiles").upsert(
-    {
-      user_id: user.id,
-      current_role: profile.current_role,
-      target_role: profile.target_role,
-      years_experience: profile.years_experience,
-      current_skills: profile.current_skills,
-      weekly_hours: profile.weekly_hours,
-      budget_usd: profile.budget_usd,
-      timeline_weeks: profile.timeline_weeks,
-      preferred_formats: profile.preferred_formats,
-      desired_outcomes: profile.desired_outcomes,
-      intent: profile.intent ?? null,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id" },
-  );
-  if (profErr) {
-    return NextResponse.json(
-      { error: `Profile save failed: ${profErr.message}` },
-      { status: 500 },
-    );
-  }
-
-  // Insert gap.
-  const { data: gapRow, error: gapErr } = await supabase
-    .from("skill_gaps")
+  // Save everything to the saved_plans table
+  const { data: planRow, error: planErr } = await supabase
+    .from("saved_plans")
     .insert({
       user_id: user.id,
-      target_role: profile.target_role,
-      result: gap,
+      name: name || `${profile.target_role} Learning Plan`,
+      profile_data: profile,
+      skill_gaps: gap,
+      recommendations: validRecs,
+      roadmap: roadmap,
+      status: "active",
     })
     .select("id")
     .single();
-  if (gapErr || !gapRow) {
-    return NextResponse.json(
-      { error: `Gap save failed: ${gapErr?.message}` },
-      { status: 500 },
-    );
-  }
 
-  // Insert recommendations.
-  const recRows = validRecs.map((r) => ({
-    user_id: user.id,
-    gap_id: gapRow.id,
-    course_id: r.course_id,
-    rank: r.rank,
-    match_score: r.match_score,
-    result: r,
-  }));
-  const { error: recsErr } = await supabase
-    .from("recommendations")
-    .insert(recRows);
-  if (recsErr) {
+  if (planErr || !planRow) {
     return NextResponse.json(
-      { error: `Recommendations save failed: ${recsErr.message}` },
-      { status: 500 },
-    );
-  }
-
-  // Insert roadmap.
-  const { data: roadmapRow, error: roadmapErr } = await supabase
-    .from("roadmaps")
-    .insert({
-      user_id: user.id,
-      target_role: profile.target_role,
-      result: roadmap,
-    })
-    .select("id")
-    .single();
-  if (roadmapErr || !roadmapRow) {
-    return NextResponse.json(
-      { error: `Roadmap save failed: ${roadmapErr?.message}` },
+      { error: `Save failed: ${planErr?.message}` },
       { status: 500 },
     );
   }
 
   return NextResponse.json({
-    plan_id: roadmapRow.id,
-    gap_id: gapRow.id,
+    plan_id: planRow.id,
   });
 }

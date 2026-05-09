@@ -26,7 +26,8 @@ Your job: given a learner's profile, return a structured analysis of where they 
 
 You must:
 - Map the user's free-text current_skills (and resume_text, if present) to skill IDs in the taxonomy via fuzzy semantic matching.
-- For every skill listed in the role requirements, return a gap entry — even if the gap is "none".
+- Return gap entries for the most important skills for the target role. Prioritize skills with larger gaps and higher weights.
+- IMPORTANT: Return at most 20 gap entries total. If there are more than 20 relevant skills, prioritize the ones with the largest gaps and highest weights for the role.
 - Be specific in rationales: reference what the learner has, what they lack, and why the gap matters for the target role.
 - transferable_strengths: short list of the learner's existing strengths (free-text, not skill IDs) that transfer to the target role.
 - adjacent_skills_to_prioritize: 3–5 skill IDs (from the taxonomy) that would unlock outsized leverage given the learner's background.

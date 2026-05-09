@@ -52,21 +52,29 @@ function RoadmapInner() {
   const [pdfBusy, setPdfBusy] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const [noData, setNoData] = useState(false);
+
   // Load from sessionStorage.
   useEffect(() => {
     const p = sessionStorage.getItem("skillpath:profile");
     const r = sessionStorage.getItem("skillpath:roadmap");
     const s = sessionStorage.getItem("skillpath:selected_recs");
+    console.log("[v0] Loading roadmap data:", { hasProfile: !!p, hasRoadmap: !!r, hasSelectedRecs: !!s });
     if (!p || !r || !s) {
-      router.replace("/intake");
+      setNoData(true);
       return;
     }
-    const parsedRoadmap = JSON.parse(r) as RoadmapResultT;
-    setProfile(JSON.parse(p));
-    setRoadmap(parsedRoadmap);
-    setPhases(parsedRoadmap.phases);
-    setSelectedRecs(JSON.parse(s));
-  }, [router]);
+    try {
+      const parsedRoadmap = JSON.parse(r) as RoadmapResultT;
+      setProfile(JSON.parse(p));
+      setRoadmap(parsedRoadmap);
+      setPhases(parsedRoadmap.phases);
+      setSelectedRecs(JSON.parse(s));
+    } catch (err) {
+      console.log("[v0] Error parsing roadmap data:", err);
+      setNoData(true);
+    }
+  }, []);
 
   const courseLookup = useMemo(() => {
     const map = new Map<string, Course>();
@@ -84,7 +92,11 @@ function RoadmapInner() {
   );
 
   const savePlan = useCallback(async () => {
-    if (!profile || !roadmap || !selectedRecs || !phases) return;
+    console.log("[v0] savePlan called", { profile, roadmap, selectedRecs, phases });
+    if (!profile || !roadmap || !selectedRecs || !phases) {
+      console.log("[v0] Missing data, aborting save");
+      return;
+    }
     setSaving(true);
     setSaveError(null);
     try {
@@ -92,6 +104,7 @@ function RoadmapInner() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+      console.log("[v0] User check:", user ? user.id : "not logged in");
 
       if (!user) {
         // Mark intent so we resume after OAuth.
@@ -109,17 +122,21 @@ function RoadmapInner() {
         return;
       }
 
+      const payload = {
+        profile,
+        gap: JSON.parse(sessionStorage.getItem("skillpath:gap") || "null"),
+        recommendations: selectedRecs.map(({ course: _course, ...r }) => r),
+        roadmap: { ...roadmap, phases },
+      };
+      console.log("[v0] Saving plan with payload:", payload);
+      
       const res = await fetch("/api/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          profile,
-          gap: JSON.parse(sessionStorage.getItem("skillpath:gap") || "null"),
-          recommendations: selectedRecs.map(({ course: _course, ...r }) => r),
-          roadmap: { ...roadmap, phases },
-        }),
+        body: JSON.stringify(payload),
       });
       const json = await res.json();
+      console.log("[v0] Save API response:", res.status, json);
       if (!res.ok) {
         setSaveError(json.error || "Save failed");
         setSaving(false);
@@ -142,6 +159,23 @@ function RoadmapInner() {
       void savePlan();
     }
   }, [profile, roadmap, selectedRecs, searchParams, savePlan]);
+
+  if (noData) {
+    return (
+      <main className="mx-auto w-full max-w-3xl px-6 py-12">
+        <h1 className="text-2xl font-semibold">No roadmap data found</h1>
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+          You need to complete the intake flow first to generate a roadmap.
+        </p>
+        <Link
+          href="/intake"
+          className="mt-4 inline-flex h-10 items-center rounded-full bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+        >
+          Start intake
+        </Link>
+      </main>
+    );
+  }
 
   if (!roadmap || !profile || !selectedRecs || !phases) {
     return (

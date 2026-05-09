@@ -24,7 +24,7 @@ const SavedRec = z.object({
 
 const Body = z.object({
   profile: ProfileInput,
-  gap: SkillGapResult,
+  gap: SkillGapResult.nullable().optional(),
   recommendations: z.array(SavedRec),
   roadmap: RoadmapResult,
   name: z.string().optional(),
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       user_id: user.id,
       name: name || `${profile.target_role} Learning Plan`,
       profile_data: profile,
-      skill_gaps: gap,
+      skill_gaps: gap || { gaps: [], transferable_strengths: [], adjacent_skills_to_prioritize: [] },
       recommendations: validRecs,
       roadmap: roadmap,
       status: "active",

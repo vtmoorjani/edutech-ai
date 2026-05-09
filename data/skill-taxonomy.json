@@ -1,0 +1,46 @@
+{
+  "skills": [
+    { "id": "product_strategy",         "name": "Product Strategy",                  "category": "product",         "description": "Setting product vision, prioritization, and bets", "related_skill_ids": ["roadmapping","metrics_design","competitive_analysis"] },
+    { "id": "user_research",            "name": "User Research",                     "category": "product",         "description": "Discovery interviews, jobs-to-be-done, usability", "related_skill_ids": ["customer_discovery","ai_ux_patterns"] },
+    { "id": "roadmapping",              "name": "Roadmapping",                       "category": "product",         "description": "Translating strategy into a sequenced delivery plan", "related_skill_ids": ["product_strategy","mvp_definition"] },
+    { "id": "metrics_design",           "name": "Metrics & KPIs",                    "category": "product",         "description": "Defining north-star + input metrics for a product", "related_skill_ids": ["ab_testing","data_analysis"] },
+    { "id": "stakeholder_management",   "name": "Stakeholder Management",            "category": "product",         "description": "Aligning execs, eng, design, GTM around outcomes", "related_skill_ids": ["executive_communication"] },
+    { "id": "customer_discovery",       "name": "Customer Discovery",                "category": "product",         "description": "Problem-space interviews and validation", "related_skill_ids": ["user_research","mvp_definition"] },
+    { "id": "mvp_definition",           "name": "MVP Definition",                    "category": "product",         "description": "Scoping the smallest learning-validating release", "related_skill_ids": ["roadmapping","customer_discovery"] },
+    { "id": "competitive_analysis",     "name": "Competitive Analysis",              "category": "product",         "description": "Mapping the landscape and finding wedges", "related_skill_ids": ["product_strategy","ai_market_landscape"] },
+    { "id": "ai_product_management",    "name": "AI Product Management",             "category": "product",         "description": "Applying PM craft to AI-native product surfaces", "related_skill_ids": ["ai_ux_patterns","ai_evaluation","cost_modeling_ai"] },
+    { "id": "ai_ux_patterns",           "name": "AI UX Patterns",                    "category": "product",         "description": "Designing for non-determinism, trust, and copilots", "related_skill_ids": ["user_research","responsible_ai"] },
+    { "id": "responsible_ai",           "name": "Responsible AI",                    "category": "product",         "description": "Fairness, transparency, harm reduction in AI products", "related_skill_ids": ["ai_safety_guardrails","data_governance"] },
+    { "id": "cost_modeling_ai",         "name": "AI Cost Modeling",                  "category": "product",         "description": "Token economics, latency budgets, infra tradeoffs", "related_skill_ids": ["ai_engineering_basics"] },
+    { "id": "portfolio_building",       "name": "Portfolio Building",                "category": "product",         "description": "Shipping public artifacts that prove AI PM craft", "related_skill_ids": ["technical_prototyping"] },
+
+    { "id": "genai_fundamentals",       "name": "GenAI Fundamentals",                "category": "ai_foundations",  "description": "How LLMs work at a working level for builders", "related_skill_ids": ["llm_prompting","ml_basics"] },
+    { "id": "llm_prompting",            "name": "LLM Prompting",                     "category": "ai_foundations",  "description": "Prompt design, few-shot, structured outputs", "related_skill_ids": ["genai_fundamentals","ai_evaluation"] },
+    { "id": "rag_basics",               "name": "Retrieval-Augmented Generation",    "category": "ai_foundations",  "description": "Embeddings, vector stores, retrieval pipelines", "related_skill_ids": ["genai_fundamentals","ai_engineering_basics"] },
+
+    { "id": "agentic_systems",          "name": "Agentic Systems",                   "category": "ai_engineering",  "description": "Tool use, planning, multi-step agents", "related_skill_ids": ["llm_prompting","rag_basics"] },
+    { "id": "fine_tuning",              "name": "Fine-Tuning & Adaptation",          "category": "ai_engineering",  "description": "When and how to specialize a base model", "related_skill_ids": ["genai_fundamentals","ml_basics"] },
+    { "id": "ai_engineering_basics",    "name": "AI Engineering Basics",             "category": "ai_engineering",  "description": "Productionizing LLM features end-to-end", "related_skill_ids": ["api_integration","cost_modeling_ai"] },
+
+    { "id": "ai_evaluation",            "name": "AI Evaluation",                     "category": "ai_evaluation",   "description": "Offline evals, judges, regression suites", "related_skill_ids": ["ai_safety_guardrails","ab_testing"] },
+    { "id": "ai_safety_guardrails",     "name": "Safety & Guardrails",               "category": "ai_evaluation",   "description": "Input/output filtering, refusal design", "related_skill_ids": ["responsible_ai","ai_red_teaming"] },
+    { "id": "ai_red_teaming",           "name": "AI Red Teaming",                    "category": "ai_evaluation",   "description": "Adversarial probing of model behavior", "related_skill_ids": ["ai_safety_guardrails"] },
+
+    { "id": "data_analysis",            "name": "Data Analysis",                     "category": "data",            "description": "Pulling, transforming, and reasoning about data", "related_skill_ids": ["sql","metrics_design"] },
+    { "id": "sql",                      "name": "SQL",                               "category": "data",            "description": "Querying relational data for product decisions", "related_skill_ids": ["data_analysis"] },
+    { "id": "data_governance",          "name": "Data Governance",                   "category": "data",            "description": "Privacy, lineage, retention, consent", "related_skill_ids": ["responsible_ai"] },
+    { "id": "ab_testing",               "name": "A/B Testing",                       "category": "data",            "description": "Experiment design, MDE, guardrail metrics", "related_skill_ids": ["metrics_design","ai_evaluation"] },
+
+    { "id": "python_basics",            "name": "Python Basics",                     "category": "technical",       "description": "Working knowledge of Python for prototyping", "related_skill_ids": ["technical_prototyping","api_integration"] },
+    { "id": "api_integration",          "name": "API Integration",                   "category": "technical",       "description": "Calling REST/SDK APIs to wire prototypes", "related_skill_ids": ["python_basics","ai_engineering_basics"] },
+    { "id": "technical_prototyping",    "name": "Technical Prototyping",             "category": "technical",       "description": "Stitching together working AI demos", "related_skill_ids": ["python_basics","api_integration","portfolio_building"] },
+    { "id": "ml_basics",                "name": "ML Fundamentals",                   "category": "technical",       "description": "Models, training/test, basic intuition", "related_skill_ids": ["genai_fundamentals"] },
+    { "id": "system_design_basics",     "name": "System Design Basics",              "category": "technical",       "description": "Reasoning about latency, scale, failure modes", "related_skill_ids": ["ai_engineering_basics"] },
+
+    { "id": "team_leadership",          "name": "Team Leadership",                   "category": "leadership",      "description": "Leading cross-functional teams", "related_skill_ids": ["stakeholder_management"] },
+    { "id": "executive_communication",  "name": "Executive Communication",           "category": "leadership",      "description": "Crisp written + verbal updates to leadership", "related_skill_ids": ["stakeholder_management"] },
+    { "id": "ai_strategy",              "name": "AI Strategy",                       "category": "leadership",      "description": "Build vs. buy, platform bets, org design", "related_skill_ids": ["product_strategy","ai_market_landscape"] },
+
+    { "id": "ai_market_landscape",      "name": "AI Market Landscape",               "category": "domain",          "description": "Players, models, trends across the AI ecosystem", "related_skill_ids": ["competitive_analysis","ai_strategy"] }
+  ]
+}

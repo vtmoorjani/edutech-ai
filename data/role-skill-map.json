@@ -1,0 +1,51 @@
+{
+  "roles": {
+    "ai_product_manager": {
+      "display_name": "AI Product Manager",
+      "description": "Leads AI-powered product surfaces end-to-end: discovery, scoping, evaluation, launch.",
+      "required_skills": [
+        { "skill_id": "product_strategy",         "required_level": "high",   "weight": 3 },
+        { "skill_id": "user_research",            "required_level": "high",   "weight": 2 },
+        { "skill_id": "roadmapping",              "required_level": "high",   "weight": 2 },
+        { "skill_id": "metrics_design",           "required_level": "high",   "weight": 3 },
+        { "skill_id": "stakeholder_management",   "required_level": "high",   "weight": 2 },
+        { "skill_id": "customer_discovery",       "required_level": "medium", "weight": 2 },
+        { "skill_id": "mvp_definition",           "required_level": "high",   "weight": 2 },
+        { "skill_id": "competitive_analysis",     "required_level": "medium", "weight": 1 },
+
+        { "skill_id": "ai_product_management",    "required_level": "high",   "weight": 4 },
+        { "skill_id": "ai_ux_patterns",           "required_level": "high",   "weight": 3 },
+        { "skill_id": "responsible_ai",           "required_level": "medium", "weight": 2 },
+        { "skill_id": "cost_modeling_ai",         "required_level": "medium", "weight": 2 },
+        { "skill_id": "portfolio_building",       "required_level": "medium", "weight": 2 },
+
+        { "skill_id": "genai_fundamentals",       "required_level": "high",   "weight": 3 },
+        { "skill_id": "llm_prompting",            "required_level": "high",   "weight": 3 },
+        { "skill_id": "rag_basics",               "required_level": "medium", "weight": 2 },
+
+        { "skill_id": "agentic_systems",          "required_level": "medium", "weight": 2 },
+        { "skill_id": "fine_tuning",              "required_level": "low",    "weight": 1 },
+        { "skill_id": "ai_engineering_basics",    "required_level": "medium", "weight": 2 },
+
+        { "skill_id": "ai_evaluation",            "required_level": "high",   "weight": 3 },
+        { "skill_id": "ai_safety_guardrails",     "required_level": "medium", "weight": 2 },
+        { "skill_id": "ai_red_teaming",           "required_level": "low",    "weight": 1 },
+
+        { "skill_id": "data_analysis",            "required_level": "medium", "weight": 2 },
+        { "skill_id": "sql",                      "required_level": "medium", "weight": 1 },
+        { "skill_id": "data_governance",          "required_level": "medium", "weight": 1 },
+        { "skill_id": "ab_testing",               "required_level": "medium", "weight": 2 },
+
+        { "skill_id": "python_basics",            "required_level": "low",    "weight": 1 },
+        { "skill_id": "api_integration",          "required_level": "low",    "weight": 1 },
+        { "skill_id": "technical_prototyping",    "required_level": "medium", "weight": 2 },
+        { "skill_id": "ml_basics",                "required_level": "medium", "weight": 1 },
+        { "skill_id": "system_design_basics",     "required_level": "low",    "weight": 1 },
+
+        { "skill_id": "executive_communication",  "required_level": "high",   "weight": 2 },
+        { "skill_id": "ai_strategy",              "required_level": "medium", "weight": 2 },
+        { "skill_id": "ai_market_landscape",      "required_level": "medium", "weight": 1 }
+      ]
+    }
+  }
+}

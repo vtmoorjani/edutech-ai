@@ -29,6 +29,7 @@ You must:
 - Return gap entries for the most important skills for the target role. Prioritize skills with larger gaps and higher weights.
 - IMPORTANT: Return at most 20 gap entries total. If there are more than 20 relevant skills, prioritize the ones with the largest gaps and highest weights for the role.
 - Be specific in rationales: reference what the learner has, what they lack, and why the gap matters for the target role.
+- summary: A concise overview (max 1500 characters) of the learner's overall readiness and key gaps.
 - transferable_strengths: short list of the learner's existing strengths (free-text, not skill IDs) that transfer to the target role.
 - adjacent_skills_to_prioritize: 3–5 skill IDs (from the taxonomy) that would unlock outsized leverage given the learner's background.
 

@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SkillPath AI — Build Log</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    max-width: 880px;
+    margin: 2rem auto;
+    padding: 0 1.25rem 4rem;
+    line-height: 1.55;
+    color: #18181b;
+    background: #fafafa;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { color: #e4e4e7; background: #09090b; }
+    code, pre { background: #18181b !important; color: #e4e4e7; }
+    table, th, td { border-color: #27272a !important; }
+    th { background: #18181b !important; }
+    a { color: #93c5fd; }
+    .meta { color: #a1a1aa; }
+    .pill { background: #18181b; border-color: #27272a; }
+  }
+  h1 { font-size: 1.9rem; margin-bottom: .25rem; }
+  h2 { font-size: 1.3rem; margin-top: 2.4rem; padding-bottom: .25rem; border-bottom: 1px solid #e4e4e7; }
+  h3 { font-size: 1.05rem; margin-top: 1.6rem; }
+  .meta { color: #71717a; font-size: .9rem; margin-bottom: 1.5rem; }
+  code, pre {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    background: #f4f4f5;
+    border-radius: 4px;
+  }
+  code { padding: .1em .35em; font-size: .92em; }
+  pre {
+    padding: .9rem 1rem;
+    overflow-x: auto;
+    font-size: .85rem;
+    line-height: 1.5;
+  }
+  table { border-collapse: collapse; width: 100%; margin: .8rem 0; font-size: .92rem; }
+  th, td { border: 1px solid #e4e4e7; padding: .5rem .7rem; text-align: left; vertical-align: top; }
+  th { background: #f4f4f5; font-weight: 600; }
+  ul, ol { padding-left: 1.4rem; }
+  li { margin: .25rem 0; }
+  .pill {
+    display: inline-block;
+    background: #f4f4f5;
+    border: 1px solid #e4e4e7;
+    border-radius: 999px;
+    padding: .15rem .55rem;
+    font-size: .78rem;
+    color: #52525b;
+    margin-right: .35rem;
+  }
+  .done { color: #15803d; }
+  .pending { color: #a16207; }
+  .blocked { color: #b91c1c; }
+  hr { border: none; border-top: 1px solid #e4e4e7; margin: 2.5rem 0; }
+</style>
+</head>
+<body>
+
+<h1>SkillPath AI — Build Log</h1>
+<p class="meta">
+  An AI-powered course discovery, skill-gap analysis, and learning roadmap engine. MVP scoped to mid-career professionals moving into AI Product Manager roles.<br>
+  <strong>Last updated:</strong> 2026-05-08 (pulled v0 changes from origin/main, HEAD now <code>9091490</code>)
+</p>
+
+<h2>1. Project root</h2>
+<table>
+  <tr><th>Path</th><td><code>/Users/vikrammoorjani/edu_techj/</code></td></tr>
+  <tr><th>Next.js app</th><td><code>web/</code></td></tr>
+  <tr><th>Original PRD</th><td><code>PRD/PRD_ SkillPath AI.md</code></td></tr>
+  <tr><th>Plan file</th><td><code>~/.claude/plans/users-vikrammoorjani-edu-techj-prd-prd-structured-spindle.md</code></td></tr>
+  <tr><th>GitHub repo</th><td><a href="https://github.com/vtmoorjani/edutech-ai">vtmoorjani/edutech-ai</a></td></tr>
+  <tr><th>Build status</th><td>All phases compile clean (TypeScript + Next.js production build pass)</td></tr>
+</table>
+
+<h2>2. Architecture</h2>
+<pre>[Landing] → [Multi-step Intake] → /api/skill-gap (Claude)
+                                        ↓
+                              [Skill Gap View] → /api/recommend (filter + Claude rerank)
+                                                       ↓
+                                       [Recommendations View] → user selects courses
+                                                                       ↓
+                                                            /api/roadmap (Claude)
+                                                                       ↓
+                                                              [Roadmap View] → save / PDF / share</pre>
+<p>
+  Three Claude calls in the critical path. Each uses Zod-validated structured outputs and prompt caching on the skill taxonomy + filtered course slice. AI-generated course IDs are validated against the catalog before render to prevent hallucination.
+</p>
+
+<h2>3. Tech stack</h2>
+<table>
+  <tr><th>Layer</th><th>Choice</th></tr>
+  <tr><td>Framework</td><td>Next.js 16.2.6 (App Router) + TypeScript</td></tr>
+  <tr><td>UI</td><td>Tailwind CSS v4</td></tr>
+  <tr><td>AI</td><td>Anthropic SDK, Claude Opus 4.7 with adaptive thinking + medium effort + ephemeral prompt cache</td></tr>
+  <tr><td>Validation</td><td>Zod (form input + AI structured output)</td></tr>
+  <tr><td>DB / Auth</td><td>Supabase (Postgres + Google OAuth + Row-Level Security)</td></tr>
+  <tr><td>Analytics</td><td>PostHog (no-ops gracefully if key unset)</td></tr>
+  <tr><td>PDF export</td><td>@react-pdf/renderer</td></tr>
+  <tr><td>Hosting</td><td>Vercel (deployment in progress)</td></tr>
+</table>
+
+<h2>4. Phases completed</h2>
+
+<h3>Phase A — Foundation <span class="pill done">done</span></h3>
+<ul>
+  <li>Scaffolded Next.js with <code>create-next-app</code> (TypeScript, Tailwind, App Router)</li>
+  <li>Installed <code>@anthropic-ai/sdk</code>, <code>@supabase/ssr</code>, <code>@supabase/supabase-js</code>, <code>zod</code></li>
+  <li>Wrote <code>lib/anthropic.ts</code> wrapper with prompt caching and structured output via <code>messages.parse()</code></li>
+  <li>Wrote SSR-safe Supabase clients (<code>lib/supabase/client.ts</code>, <code>server.ts</code>)</li>
+  <li>Wrote initial DB migration (<code>supabase/migrations/0001_init.sql</code>) with RLS</li>
+  <li>Set up <code>.env.example</code> template</li>
+  <li>Replaced default landing page with SkillPath value prop</li>
+</ul>
+
+<h3>Phase B — Seed data <span class="pill done">done</span></h3>
+<ul>
+  <li><code>data/skill-taxonomy.json</code> — 36 AI PM-relevant skills across 8 categories</li>
+  <li><code>data/role-skill-map.json</code> — AI Product Manager role with required level + weight per skill</li>
+  <li><code>data/courses.seed.json</code> — 25 placeholder courses across Coursera, Maven, Edureka, Udemy, LinkedIn Learning, Udacity, Reforge (all marked <code>needs_verification</code>)</li>
+</ul>
+
+<h3>Phase C — Intake form + skill-gap API <span class="pill done">done</span></h3>
+<ul>
+  <li><code>app/intake/page.tsx</code> — multi-section form (role, hours, budget, timeline, formats, outcomes, optional resume paste)</li>
+  <li><code>app/api/skill-gap/route.ts</code> — Claude call with cached taxonomy + role-skill-map</li>
+  <li><code>app/results/page.tsx</code> — categorized skill-gap breakdown with badges</li>
+</ul>
+
+<h3>Phase D — Recommender <span class="pill done">done</span></h3>
+<ul>
+  <li><code>lib/scoring.ts</code> — pre-filter to top-20 by budget × time × gap-coverage</li>
+  <li><code>app/api/recommend/route.ts</code> — Claude reranks the shortlist with structured explanations; filters out hallucinated course IDs</li>
+  <li>Recommendation cards on <code>/results</code> with expandable "Why this / Why now / Tradeoffs" panels</li>
+</ul>
+
+<h3>Phase E — Roadmap generator <span class="pill done">done</span></h3>
+<ul>
+  <li><code>app/api/roadmap/route.ts</code> — Claude sequences selected courses into phased plan</li>
+  <li><code>app/roadmap/page.tsx</code> — phased view with editable phase names + weeks, capstone + LinkedIn callouts</li>
+  <li>Multi-select on <code>/results</code> with sticky bottom action bar; top-3 pre-selected</li>
+</ul>
+
+<h3>Phase F — Auth, persistence, PDF, LinkedIn <span class="pill done">done</span></h3>
+<ul>
+  <li><code>proxy.ts</code> + <code>lib/supabase/middleware.ts</code> — session refresh on every request (gracefully no-ops when Supabase env unset)</li>
+  <li><code>app/auth/callback/route.ts</code> — OAuth code exchange (kept; was used by Google OAuth but the active auth flow is now email/password — see Phase H)</li>
+  <li><code>app/api/save/route.ts</code> — persists profile, gap, recs, roadmap with RLS</li>
+  <li><code>app/api/plans/[id]/route.ts</code> + <code>app/plans/[id]/page.tsx</code> — saved view with PDF download</li>
+  <li><code>lib/pdf/roadmap-pdf.tsx</code> + <code>app/api/export/route.tsx</code> — PDF generation</li>
+  <li>"Copy LinkedIn post" + "Share on LinkedIn" buttons</li>
+</ul>
+
+<h3>Phase H — v0 follow-on changes (post-deploy) <span class="pill done">done</span></h3>
+<p class="meta">Shipped on the <code>low-credit-balance</code> branch via a Vercel v0 chat session, merged to <code>main</code> as PR #1 (commits <code>13a6be9</code>..<code>9091490</code>). The branch name references the credit-balance error that surfaced during deploy, but the credit issue itself was <strong>not</strong> resolved here — see the errors log.</p>
+<ul>
+  <li><strong>Auth refactor:</strong> Google OAuth replaced with email/password. New <code>app/auth/login/page.tsx</code> + <code>app/auth/sign-up/page.tsx</code> use <code>supabase.auth.signInWithPassword()</code> / <code>signUp()</code>. The OAuth callback route still exists but is no longer wired into the save flow.</li>
+  <li><strong>Plans listing:</strong> new <code>app/plans/page.tsx</code> (index) and <code>app/api/plans/route.ts</code> (GET list). The MVP previously had no plan listing — only a single saved-plan view.</li>
+  <li><strong>Plan management:</strong> <code>app/api/plans/[id]/route.ts</code> now supports PATCH (rename plan, update status: active / completed / archived) and DELETE; <code>app/plans/[id]/page.tsx</code> exposes inline name editing and status pills.</li>
+  <li><strong>Save API refactor:</strong> <code>gap</code> field is now optional in <code>/api/save</code>; debug logging added; route reorganized.</li>
+  <li><strong>Skill-gap prompt fix:</strong> capped at 20 gap entries to keep responses under the structured-output schema's <code>max(20)</code> limit.</li>
+  <li><strong>Summary field expanded:</strong> <code>SkillGapResult.summary</code> Zod limit raised from 800 to 1500 chars; prompt now explicitly requests "concise overview (max 1500 characters)".</li>
+  <li><strong>Roadmap save flow:</strong> bug fix to "Save my plan" on <code>/roadmap</code>.</li>
+</ul>
+
+<h3>Phase G — Feedback, analytics, a11y <span class="pill done">done</span></h3>
+<ul>
+  <li><code>app/api/feedback/route.ts</code> — auth-required thumbs + reason</li>
+  <li><code>components/feedback-widget.tsx</code> — three-state widget on every recommendation card</li>
+  <li><code>lib/analytics.ts</code> + <code>components/analytics-provider.tsx</code> — PostHog with no-op fallback</li>
+  <li>Funnel events: assessment_started, assessment_completed, recs_viewed, course_clicked, roadmap_built, roadmap_saved, pdf_exported, linkedin_copied, feedback_submitted</li>
+  <li><code>components/ai-disclosure-banner.tsx</code> — dismissible amber AI disclosure</li>
+  <li>Skip-to-content link, semantic landmarks, ARIA labels on icon-only buttons</li>
+</ul>
+
+<h2>5. File inventory (Next.js app)</h2>
+<pre>web/
+  app/
+    layout.tsx                       # root layout + skip link + AI banner + analytics provider
+    page.tsx                         # landing
+    intake/page.tsx                  # multi-section intake form
+    results/page.tsx                 # skill gap + recs + multi-select
+    roadmap/page.tsx                 # phased plan + Save / PDF / LinkedIn buttons
+    plans/page.tsx                   # plans listing (added by v0 in Phase H)
+    plans/[id]/page.tsx              # saved plan view (rename + status + delete added in Phase H)
+    auth/callback/route.ts           # OAuth landing (unused by current email/password flow; kept)
+    auth/login/page.tsx              # email/password login (added in Phase H)
+    auth/sign-up/page.tsx            # email/password sign-up (added in Phase H)
+    api/
+      skill-gap/route.ts             # Claude call #1
+      recommend/route.ts             # Claude call #2 (with pre-filter)
+      roadmap/route.ts               # Claude call #3
+      save/route.ts                  # persistence (gap field now optional)
+      plans/route.ts                 # GET list of user's plans (added in Phase H)
+      plans/[id]/route.ts            # GET / PATCH (rename, status) / DELETE saved plan
+      export/route.tsx               # PDF
+      feedback/route.ts              # thumbs + reason
+  components/
+    analytics-provider.tsx
+    ai-disclosure-banner.tsx
+    feedback-widget.tsx
+  lib/
+    anthropic.ts                     # SDK wrapper + prompt caching
+    analytics.ts                     # PostHog wrapper (no-op fallback)
+    data.ts                          # JSON catalog loader
+    prompts.ts                       # Versioned prompt templates
+    schemas.ts                       # Zod schemas for AI outputs + form input
+    scoring.ts                       # Course pre-filter for recommender
+    pdf/roadmap-pdf.tsx              # @react-pdf document
+    supabase/{client,server,middleware}.ts
+  data/
+    skill-taxonomy.json
+    role-skill-map.json
+    courses.seed.json
+  supabase/migrations/0001_init.sql
+  proxy.ts                           # session-refresh middleware
+  .env.example
+  .env.local                         # GIT-IGNORED — your secrets</pre>
+
+<h2>6. Local setup</h2>
+<pre>cd /Users/vikrammoorjani/edu_techj/web
+cp .env.example .env.local           # already done
+# edit .env.local — paste ANTHROPIC_API_KEY value
+npm install
+npm run dev                          # http://localhost:3000</pre>
+<p>
+  Without Supabase env vars, the AI flow (intake → gap → recs → roadmap → PDF) works fully. Save / Plans / Feedback paths require Supabase configuration.
+</p>
+
+<h2>7. Deployment status</h2>
+<table>
+  <tr><th>Stage</th><th>Status</th></tr>
+  <tr><td>Local dev server</td><td><span class="done">running</span></td></tr>
+  <tr><td>GitHub repo</td><td><span class="done">pushed</span> — <a href="https://github.com/vtmoorjani/edutech-ai">vtmoorjani/edutech-ai</a> (commit 1edc887)</td></tr>
+  <tr><td>Vercel deploy</td><td><span class="blocked">blocked</span> — repo imported via v0; first Anthropic call returned <code>credit_balance_too_low</code>. See <code>vercel.md</code> + errors log.</td></tr>
+  <tr><td>Supabase project</td><td><span class="pending">not yet configured</span></td></tr>
+  <tr><td>Course catalog verification</td><td><span class="pending">all 25 entries marked needs_verification</span></td></tr>
+</table>
+
+<h2>8. Changelog (append-only)</h2>
+<table>
+  <tr><th>Date</th><th>Change</th></tr>
+  <tr><td>2026-05-08</td><td>Phase A complete — Next.js scaffold, Supabase + Anthropic SDK, initial migration, landing page</td></tr>
+  <tr><td>2026-05-08</td><td>Phase B complete — taxonomy, role map, seed catalog (25 courses)</td></tr>
+  <tr><td>2026-05-08</td><td>Phase C complete — intake form, /api/skill-gap, results page</td></tr>
+  <tr><td>2026-05-08</td><td>Phase D complete — lib/scoring.ts, /api/recommend with hallucination guard, rec cards</td></tr>
+  <tr><td>2026-05-08</td><td>Phase E complete — /api/roadmap, /roadmap page with editable phases, multi-select on results</td></tr>
+  <tr><td>2026-05-08</td><td>Phase F complete — proxy.ts, /auth/callback, /api/save, /api/plans/[id], /plans/[id], PDF export, LinkedIn copy/share</td></tr>
+  <tr><td>2026-05-08</td><td>Phase G complete — feedback widget + API, PostHog analytics, AI disclosure banner, skip-to-content link</td></tr>
+  <tr><td>2026-05-08</td><td>ANTHROPIC_API_KEY configured in .env.local; dev server started successfully</td></tr>
+  <tr><td>2026-05-08</td><td>Made Supabase middleware no-op when env unset (lib/supabase/middleware.ts) so AI flow works without Supabase</td></tr>
+  <tr><td>2026-05-08</td><td>Git initialized, .gitignore patched to exclude secrets but include .env.example template; first build commit (1edc887)</td></tr>
+  <tr><td>2026-05-08</td><td>Pushed main branch to <a href="https://github.com/vtmoorjani/edutech-ai">vtmoorjani/edutech-ai</a></td></tr>
+  <tr><td>2026-05-08</td><td>output/readme.html and output/errorslog.html created</td></tr>
+  <tr><td>2026-05-08</td><td>output/release-notes.html created (v0.1.0 stamped released; v0.2.0 unreleased opened)</td></tr>
+  <tr><td>2026-05-08</td><td>Vercel deploy via v0 hit Anthropic <code>credit_balance_too_low</code> on first API call. v0 chat preserved in <code>output/vercel.md</code>. Awaiting user decision: top up Anthropic API credits, or migrate to Vercel AI Gateway.</td></tr>
+  <tr><td>2026-05-08</td><td>Pulled <code>1edc887..9091490</code> from origin/main — v0 follow-on changes (Phase H): email/password auth, /plans listing, plan rename + status + delete, skill-gap prompt fix, summary field expansion, save-flow fix. Build clean (18 routes).</td></tr>
+</table>
+
+<p class="meta">
+  Living docs in this folder:
+  <a href="readme.html">readme.html</a> · <a href="errorslog.html">errorslog.html</a> · <a href="release-notes.html">release-notes.html</a>
+</p>
+
+<hr>
+
+<h2>9. Open follow-ups</h2>
+<ul>
+  <li class="pending"><strong>Smoke-test the AI flow end-to-end</strong> — pending user walking through intake → gap → recs → roadmap on localhost</li>
+  <li class="pending"><strong>Verify the seed catalog</strong> — every course URL/price/rating in <code>data/courses.seed.json</code> must be human-verified before launch</li>
+  <li class="pending"><strong>Configure Supabase project</strong> — required for save, /plans/[id], feedback. Run <code>supabase/migrations/0001_init.sql</code>; enable Google OAuth provider</li>
+  <li class="pending"><strong>Add production redirect URL to Supabase</strong> — <code>https://&lt;vercel-domain&gt;/auth/callback</code></li>
+  <li class="pending"><strong>Set up PostHog</strong> — optional, for funnel measurement (PRD §16)</li>
+  <li class="pending"><strong>Run axe-core a11y scan</strong> against dev server (manual a11y pass done; automated audit pending)</li>
+  <li class="pending"><strong>Replace placeholder model assumptions</strong> — confirm <code>claude-opus-4-7</code> tier limits are sufficient for production load</li>
+</ul>
+
+</body>
+</html>

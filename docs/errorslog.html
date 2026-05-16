@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SkillPath AI — Errors Log</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    max-width: 880px;
+    margin: 2rem auto;
+    padding: 0 1.25rem 4rem;
+    line-height: 1.55;
+    color: #18181b;
+    background: #fafafa;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { color: #e4e4e7; background: #09090b; }
+    code, pre { background: #18181b !important; color: #e4e4e7; }
+    .entry { border-color: #27272a !important; background: #18181b !important; }
+    .entry header { border-color: #27272a !important; }
+    .meta { color: #a1a1aa; }
+    .label { color: #a1a1aa; }
+    a { color: #93c5fd; }
+  }
+  h1 { font-size: 1.9rem; margin-bottom: .25rem; }
+  h2 { font-size: 1.3rem; margin-top: 2.4rem; }
+  .meta { color: #71717a; font-size: .9rem; margin-bottom: 1.5rem; }
+  code, pre {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    background: #f4f4f5;
+    border-radius: 4px;
+  }
+  code { padding: .1em .35em; font-size: .92em; }
+  pre {
+    padding: .9rem 1rem;
+    overflow-x: auto;
+    font-size: .85rem;
+    line-height: 1.5;
+  }
+  .entry {
+    border: 1px solid #e4e4e7;
+    background: #fff;
+    border-radius: 8px;
+    padding: 1.1rem 1.25rem;
+    margin: 1rem 0;
+  }
+  .entry header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid #e4e4e7;
+    padding-bottom: .55rem;
+    margin-bottom: .8rem;
+  }
+  .entry header strong { font-size: 1rem; }
+  .entry header span { color: #71717a; font-size: .82rem; white-space: nowrap; }
+  .label {
+    display: inline-block;
+    font-size: .75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #71717a;
+    margin-top: .9rem;
+    margin-bottom: .25rem;
+  }
+  .severity-build { color: #b45309; }
+  .severity-runtime { color: #b91c1c; }
+  .severity-config { color: #1d4ed8; }
+  hr { border: none; border-top: 1px solid #e4e4e7; margin: 2.5rem 0; }
+</style>
+</head>
+<body>
+
+<h1>SkillPath AI — Errors Log</h1>
+<p class="meta">
+  Errors hit during build/run, with the root cause and resolution. Newest at top.<br>
+  <strong>Last updated:</strong> 2026-05-08 (Anthropic API credit-balance error logged)
+</p>
+
+<h2>Entries</h2>
+
+<article class="entry">
+  <header>
+    <strong>Anthropic API: 400 — Your credit balance is too low</strong>
+    <span>2026-05-08 · <span class="severity-config">config</span></span>
+  </header>
+  <div class="label">Symptom</div>
+  <pre>AI provider error (400): 400 {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans &amp; Billing to upgrade or purchase credits."},"request_id":"req_011CarU27jC8fgmDQygHtvJp"}</pre>
+  <div class="label">Root cause</div>
+  <p>
+    Hit during initial Vercel deploy via v0. The user's <code>ANTHROPIC_API_KEY</code> belongs to an Anthropic API account with $0 balance. Confusion factor: the user has a Claude Pro subscription on <code>claude.ai</code> ($100/mo), but that pays for the browser product — it does <em>not</em> grant API credits. API billing lives at <a href="https://console.anthropic.com/settings/billing">console.anthropic.com/settings/billing</a> and is a separate ledger.
+  </p>
+  <div class="label">Fix (pending user decision)</div>
+  <p>
+    Two options:<br>
+    <strong>A.</strong> Add API credits at console.anthropic.com/settings/billing (≥ $10 recommended for MVP). No code change. Propagation takes 1–2 minutes.<br>
+    <strong>B.</strong> Migrate to the Vercel AI Gateway (v0 offered an in-place rewrite). Bills usage to Vercel instead. Trade-off: rewrites <code>lib/anthropic.ts</code> off the official SDK, would need to re-prove prompt caching and Zod-validated <code>messages.parse()</code> structured outputs work via the Vercel AI SDK's <code>generateObject</code> shape.
+  </p>
+  <div class="label">Status (2026-05-08)</div>
+  <p>
+    <strong>Still unresolved.</strong> The <code>low-credit-balance</code> branch v0 shipped (PR #1, merged to <code>main</code> as <code>9091490</code>) added unrelated features (email/password auth, plans listing, save-flow fixes) but did <em>not</em> swap the AI provider — <code>lib/anthropic.ts</code> still imports <code>@anthropic-ai/sdk</code> and the deployed Vercel build will hit the same 400 on the next Claude call. User must still complete option A or B above.
+  </p>
+  <div class="label">Where</div>
+  <p>
+    Originated from <code>web/app/api/skill-gap/route.ts</code> (or <code>recommend</code>/<code>roadmap</code>) — any of the three Claude calls would surface this. Full chat preserved in <code>output/vercel.md</code>.
+  </p>
+</article>
+
+<!-- ─────────────── Entry template (copy when adding new) ───────────────
+<article class="entry">
+  <header>
+    <strong>Title</strong>
+    <span>YYYY-MM-DD · severity</span>
+  </header>
+  <div class="label">Symptom</div>
+  <pre>...</pre>
+  <div class="label">Root cause</div>
+  <p>...</p>
+  <div class="label">Fix</div>
+  <p>...</p>
+  <div class="label">Where</div>
+  <p><code>path/to/file:line</code></p>
+</article>
+────────────────────────────────────────────────────────────────────── -->
+
+<article class="entry">
+  <header>
+    <strong>Anthropic SDK: "Could not resolve authentication method"</strong>
+    <span>2026-05-08 · <span class="severity-config">config</span></span>
+  </header>
+  <div class="label">Symptom</div>
+  <pre>Could not resolve authentication method. Expected one of apiKey, authToken, credentials, config, or profile to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted</pre>
+  <div class="label">Root cause</div>
+  <p>
+    <code>web/.env.local</code> existed but was an empty file (0 bytes). The user thought they had pasted the key, but the file got created empty (likely <code>touch</code>-style, not the <code>cp .env.example .env.local</code> the docs called for). The Anthropic SDK reads <code>process.env.ANTHROPIC_API_KEY</code> at request time and threw because nothing was set.
+  </p>
+  <div class="label">Fix</div>
+  <p>
+    Re-wrote <code>.env.local</code> with the full template (Anthropic + Supabase + PostHog placeholders), instructed user to paste their key after <code>ANTHROPIC_API_KEY=</code> and restart the dev server (Next.js only loads env files at startup).
+  </p>
+  <div class="label">Where</div>
+  <p><code>web/.env.local</code></p>
+</article>
+
+<article class="entry">
+  <header>
+    <strong>Build: useSearchParams() Suspense bailout on /roadmap</strong>
+    <span>2026-05-08 · <span class="severity-build">build</span></span>
+  </header>
+  <div class="label">Symptom</div>
+  <pre>useSearchParams() should be wrapped in a suspense boundary at page "/roadmap"</pre>
+  <div class="label">Root cause</div>
+  <p>
+    Next.js 16 statically prerenders client components by default. <code>useSearchParams()</code> reads request data, so it triggers a CSR bailout — and that bailout is only legal inside a Suspense boundary.
+  </p>
+  <div class="label">Fix</div>
+  <p>
+    Split <code>app/roadmap/page.tsx</code> into a thin default-exported wrapper that renders <code>&lt;Suspense fallback={...}&gt;&lt;RoadmapInner /&gt;&lt;/Suspense&gt;</code>, and moved all hooks (including <code>useSearchParams</code>) into <code>RoadmapInner</code>.
+  </p>
+  <div class="label">Where</div>
+  <p><code>web/app/roadmap/page.tsx</code></p>
+</article>
+
+<article class="entry">
+  <header>
+    <strong>Build: JSX in .ts file (PDF export route)</strong>
+    <span>2026-05-08 · <span class="severity-build">build</span></span>
+  </header>
+  <div class="label">Symptom</div>
+  <pre>./app/api/export/route.ts:42:9
+Expected '>', got 'ident'
+        &lt;RoadmapDocument
+          profile={profile}      ← parser fails here
+          ...
+Parsing ecmascript source code failed</pre>
+  <div class="label">Root cause</div>
+  <p>
+    The PDF export route called <code>renderToBuffer(&lt;RoadmapDocument /&gt;)</code> — JSX inside a <code>.ts</code> file. Next.js's TypeScript parser only handles JSX in <code>.tsx</code>.
+  </p>
+  <div class="label">Fix</div>
+  <p>
+    Renamed <code>web/app/api/export/route.ts</code> to <code>route.tsx</code>. Behavior identical, parser happy.
+  </p>
+  <div class="label">Where</div>
+  <p><code>web/app/api/export/route.tsx</code></p>
+</article>
+
+<article class="entry">
+  <header>
+    <strong>TypeScript: zodOutputFormat signature mismatch</strong>
+    <span>2026-05-08 · <span class="severity-build">build</span></span>
+  </header>
+  <div class="label">Symptom</div>
+  <pre>lib/anthropic.ts(36,44): error TS2554: Expected 1 arguments, but got 2.</pre>
+  <div class="label">Root cause</div>
+  <p>
+    Called <code>zodOutputFormat(args.schema, "result")</code> as if it accepted a name argument. Per the SDK signature in <code>node_modules/@anthropic-ai/sdk/helpers/zod.d.ts</code>, it takes only the Zod schema:
+    <code>function zodOutputFormat&lt;ZodInput extends ZodType&gt;(zodObject: ZodInput): AutoParseableOutputFormat&lt;...&gt;</code>
+  </p>
+  <div class="label">Fix</div>
+  <p>Removed the second argument. <code>zodOutputFormat(args.schema)</code>.</p>
+  <div class="label">Where</div>
+  <p><code>web/lib/anthropic.ts:36</code></p>
+</article>
+
+<article class="entry">
+  <header>
+    <strong>Git: .env.example accidentally ignored by .env* rule</strong>
+    <span>2026-05-08 · <span class="severity-config">config</span></span>
+  </header>
+  <div class="label">Symptom</div>
+  <pre>The following paths are ignored by one of your .gitignore files:
+.env.example</pre>
+  <div class="label">Root cause</div>
+  <p>
+    Default Next.js <code>.gitignore</code> uses a blanket <code>.env*</code> glob to keep secrets out of git, but that also matches <code>.env.example</code> — which is a non-secret template that should be committed so future clones know what env vars to set.
+  </p>
+  <div class="label">Fix</div>
+  <p>
+    Added <code>!.env.example</code> exception under the <code>.env*</code> rule. Verified <code>.env.local</code> remained ignored before committing.
+  </p>
+  <div class="label">Where</div>
+  <p><code>web/.gitignore:34-35</code></p>
+</article>
+
+<article class="entry">
+  <header>
+    <strong>Runtime risk: Supabase middleware crashes when env unset</strong>
+    <span>2026-05-08 · <span class="severity-runtime">runtime</span></span>
+  </header>
+  <div class="label">Symptom</div>
+  <p>
+    Anticipated, not yet observed. <code>proxy.ts</code> ran on every request and called <code>createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, ...)</code>. Without those env vars, every page would 500 — blocking the AI flow until Supabase was set up.
+  </p>
+  <div class="label">Root cause</div>
+  <p>
+    Non-null assertion (<code>!</code>) lies to TypeScript but doesn't change runtime — passing <code>undefined</code> to <code>createServerClient</code> throws.
+  </p>
+  <div class="label">Fix</div>
+  <p>
+    <code>updateSession</code> now reads the env vars into locals; if either is missing, it returns <code>NextResponse.next()</code> immediately. The whole app (except auth/save/feedback) works without Supabase.
+  </p>
+  <div class="label">Where</div>
+  <p><code>web/lib/supabase/middleware.ts:8-13</code></p>
+</article>
+
+<hr>
+<p class="meta">
+  When a new error occurs: copy the template comment near the top of this file, paste a new <code>&lt;article class="entry"&gt;</code> at the top of the Entries section, and bump <code>Last updated</code>.
+</p>
+
+</body>
+</html>

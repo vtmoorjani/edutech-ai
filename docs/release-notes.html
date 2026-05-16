@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SkillPath AI — Release Notes</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    max-width: 880px;
+    margin: 2rem auto;
+    padding: 0 1.25rem 4rem;
+    line-height: 1.55;
+    color: #18181b;
+    background: #fafafa;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { color: #e4e4e7; background: #09090b; }
+    code, pre { background: #18181b !important; color: #e4e4e7; }
+    .release { border-color: #27272a !important; background: #18181b !important; }
+    .release header { border-color: #27272a !important; }
+    .meta { color: #a1a1aa; }
+    .label { color: #a1a1aa; }
+    .pill.unreleased { background: #422006; color: #fcd34d; border-color: #78350f; }
+    a { color: #93c5fd; }
+  }
+  h1 { font-size: 1.9rem; margin-bottom: .25rem; }
+  h2 { font-size: 1.3rem; margin-top: 2.4rem; }
+  .meta { color: #71717a; font-size: .9rem; margin-bottom: 1.5rem; }
+  code, pre {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    background: #f4f4f5;
+    border-radius: 4px;
+  }
+  code { padding: .1em .35em; font-size: .92em; }
+  pre {
+    padding: .9rem 1rem;
+    overflow-x: auto;
+    font-size: .85rem;
+    line-height: 1.5;
+  }
+  .release {
+    border: 1px solid #e4e4e7;
+    background: #fff;
+    border-radius: 8px;
+    padding: 1.1rem 1.35rem 1.35rem;
+    margin: 1rem 0 1.6rem;
+  }
+  .release header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    border-bottom: 1px solid #e4e4e7;
+    padding-bottom: .55rem;
+    margin-bottom: .9rem;
+  }
+  .release header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+  .release header .stamp { color: #71717a; font-size: .85rem; white-space: nowrap; }
+  .pill {
+    display: inline-block;
+    border: 1px solid #e4e4e7;
+    background: #f4f4f5;
+    border-radius: 999px;
+    padding: .12rem .55rem;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #52525b;
+    margin-left: .4rem;
+  }
+  .pill.unreleased { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+  .pill.released { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+  .label {
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #71717a;
+    margin-top: .85rem;
+    margin-bottom: .25rem;
+  }
+  ul { padding-left: 1.4rem; margin: .25rem 0 .5rem; }
+  li { margin: .2rem 0; }
+  hr { border: none; border-top: 1px solid #e4e4e7; margin: 2.5rem 0; }
+  .placeholder { color: #a1a1aa; font-style: italic; font-size: .9rem; }
+</style>
+</head>
+<body>
+
+<h1>SkillPath AI — Release Notes</h1>
+<p class="meta">
+  User-facing release notes, newest first. Each release groups Added / Changed / Fixed / Removed bullets in the style of <a href="https://keepachangelog.com">Keep a Changelog</a>. Versioning is <a href="https://semver.org">SemVer</a>: <code>MAJOR.MINOR.PATCH</code>.<br>
+  <strong>Last updated:</strong> 2026-05-08 (Phase H entries appended to v0.2.0 unreleased)
+</p>
+
+<!-- ─────────────── Release template (copy when cutting a release) ───────────────
+<article class="release">
+  <header>
+    <h3>vX.Y.Z<span class="pill released">released</span></h3>
+    <span class="stamp">YYYY-MM-DD</span>
+  </header>
+  <div class="label">Added</div>
+  <ul><li>...</li></ul>
+  <div class="label">Changed</div>
+  <ul><li>...</li></ul>
+  <div class="label">Fixed</div>
+  <ul><li>...</li></ul>
+  <div class="label">Removed</div>
+  <ul><li>...</li></ul>
+  <div class="label">Migration notes</div>
+  <p>...</p>
+</article>
+────────────────────────────────────────────────────────────────────────────────── -->
+
+<article class="release">
+  <header>
+    <h3>v0.2.0 — Unreleased<span class="pill unreleased">in progress</span></h3>
+    <span class="stamp">draft</span>
+  </header>
+  <p class="placeholder">
+    Append entries below as work lands. Cut to <code>released</code> and stamp the date when promoted to production on Vercel.
+  </p>
+  <div class="label">Added</div>
+  <ul>
+    <li><code>output/readme.html</code>, <code>output/errorslog.html</code>, <code>output/release-notes.html</code> — living docs in the project root</li>
+    <li><code>output/vercel.md</code> — preserved chat log of the Vercel/v0 deploy session, including the credit-balance error and v0's diagnosis</li>
+    <li><strong>Plans listing</strong> — new <code>/plans</code> index page lets users see all their saved roadmaps, rename, change status (active / completed / archived), or delete (Phase H, via v0)</li>
+    <li><strong>Email/password auth</strong> — new <code>/auth/login</code> and <code>/auth/sign-up</code> pages using <code>supabase.auth.signInWithPassword()</code> / <code>signUp()</code> (Phase H)</li>
+    <li><strong>Plan API operations</strong> — <code>PATCH /api/plans/[id]</code> for rename + status update; <code>DELETE</code> for removal (Phase H)</li>
+    <li><strong>Plans listing API</strong> — <code>GET /api/plans</code> returns all the authenticated user's saved roadmaps (Phase H)</li>
+  </ul>
+  <div class="label">Changed</div>
+  <ul>
+    <li><code>web/.gitignore</code> — added <code>!.env.example</code> exception so the env template is committed (secrets in <code>.env.local</code> remain ignored)</li>
+    <li><code>web/lib/supabase/middleware.ts</code> — gracefully no-ops when <code>NEXT_PUBLIC_SUPABASE_URL</code> / <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> are unset, so the AI flow runs without a configured Supabase project</li>
+    <li><strong>Auth method:</strong> Google OAuth save-flow replaced with email/password redirect to <code>/auth/login</code> (Phase H). The OAuth callback route remains in the codebase but is no longer wired into the save CTA.</li>
+    <li><strong>Skill-gap output:</strong> <code>SkillGapResult.summary</code> max length raised from 800 → 1500 chars; prompt now explicitly caps gap entries at 20 to match the schema (Phase H)</li>
+    <li><strong>Save API:</strong> <code>gap</code> field is now optional on <code>/api/save</code> (Phase H — gap may be persisted via a separate path in some flows)</li>
+  </ul>
+  <div class="label">Fixed</div>
+  <ul>
+    <li><strong>"Save my plan" on <code>/roadmap</code></strong> — flow correctly handed off to email/password auth and resumed the save (Phase H)</li>
+  </ul>
+  <div class="label">Known issues</div>
+  <ul>
+    <li><strong>Vercel deploy still blocked on Anthropic billing.</strong> v0's <code>low-credit-balance</code> branch shipped unrelated improvements but did not actually resolve the <code>credit_balance_too_low</code> error. The fix is still one of: (a) top up at console.anthropic.com/settings/billing, or (b) migrate <code>lib/anthropic.ts</code> to the Vercel AI Gateway. See <code>output/vercel.md</code> + <code>errorslog.html</code>.</li>
+  </ul>
+</article>
+
+<article class="release">
+  <header>
+    <h3>v0.1.0 — Initial MVP build<span class="pill released">released</span></h3>
+    <span class="stamp">2026-05-08</span>
+  </header>
+
+  <div class="label">Added</div>
+  <ul>
+    <li><strong>Landing page</strong> with the SkillPath AI value proposition and CTA to start the assessment</li>
+    <li><strong>Multi-section intake form</strong> (<code>/intake</code>): current role, target role (pinned to AI Product Manager), years of experience, weekly hours, budget, timeline, preferred formats, desired outcomes, optional resume paste</li>
+    <li><strong>Skill-gap analysis</strong> (<code>/results</code>): categorized breakdown of skills with current vs. target level and plain-language rationale; transferable strengths and adjacent-skill priorities</li>
+    <li><strong>Course recommendations</strong>: ranked list across Coursera, Maven, Edureka, Udemy, LinkedIn Learning, Udacity, and Reforge with match scores and explainable "Why this / Why now / Tradeoffs / Ideal learner" panels</li>
+    <li><strong>Phased learning roadmap</strong> (<code>/roadmap</code>): editable phase names and durations, capstone project suggestion, LinkedIn update suggestion</li>
+    <li><strong>PDF export</strong>: roadmap downloadable as a Letter-size PDF with course list, objectives, and outputs per phase</li>
+    <li><strong>Save flow</strong>: Google sign-in (Supabase OAuth) on "Save my plan", persists profile + skill gap + recommendations + roadmap</li>
+    <li><strong>Saved plan view</strong> (<code>/plans/[id]</code>): read-only roadmap with PDF download</li>
+    <li><strong>Feedback widget</strong>: thumbs up/down with optional reason on every recommendation</li>
+    <li><strong>LinkedIn share</strong>: copy AI-generated LinkedIn post text + open LinkedIn share dialog</li>
+    <li><strong>AI disclosure banner</strong> on every page (dismissible)</li>
+    <li><strong>PostHog funnel events</strong>: <code>assessment_started</code>, <code>assessment_completed</code>, <code>recs_viewed</code>, <code>course_clicked</code>, <code>roadmap_built</code>, <code>roadmap_saved</code>, <code>pdf_exported</code>, <code>linkedin_copied</code>, <code>feedback_submitted</code> (no-ops gracefully when key unset)</li>
+    <li><strong>Accessibility</strong>: skip-to-content link, semantic landmarks, ARIA labels on icon-only controls, visible focus rings, keyboard-navigable form</li>
+  </ul>
+
+  <div class="label">Architecture highlights</div>
+  <ul>
+    <li>Three Claude (<code>claude-opus-4-7</code>) calls in the critical path — skill gap, recommendation rerank, roadmap — all using Zod-validated structured outputs and prompt caching on the taxonomy/catalog</li>
+    <li>Pre-filter (budget × time × gap-coverage) shrinks the catalog to the top 20 candidates before the rerank call to hold latency under the PRD's 5s NFR target</li>
+    <li>Hallucinated course IDs are filtered against the catalog before render — model can't invent courses</li>
+    <li>Supabase Postgres with Row-Level Security; reference tables (skills, courses, role mappings) are public-read, per-user tables (profiles, gaps, recs, roadmaps, feedback) are owner-only</li>
+  </ul>
+
+  <div class="label">Known limitations</div>
+  <ul>
+    <li>Course catalog (25 entries) is structurally correct but every URL/price/rating is placeholder — needs human verification before public launch</li>
+    <li>Only the AI Product Manager target role is wired up in this MVP</li>
+    <li>LinkedIn share opens a dialog pointing at the SkillPath origin URL; per-roadmap public sharing requires a separate "share" table and is intentionally out of scope</li>
+  </ul>
+
+  <div class="label">Migration notes</div>
+  <ul>
+    <li>Run <code>supabase/migrations/0001_init.sql</code> in the Supabase SQL editor to provision tables and RLS policies</li>
+    <li>Enable Google OAuth in Supabase → Authentication → Providers, with <code>http://localhost:3000/auth/callback</code> (and the production URL) in Redirect URLs</li>
+    <li>Set environment variables: <code>ANTHROPIC_API_KEY</code> (required), <code>NEXT_PUBLIC_SUPABASE_URL</code>, <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> (required for save), <code>NEXT_PUBLIC_POSTHOG_KEY</code> (optional)</li>
+  </ul>
+</article>
+
+<hr>
+
+<h2>Versioning policy</h2>
+<ul>
+  <li><strong>MAJOR</strong> — breaking change to the user-facing flow, data model, or API contracts</li>
+  <li><strong>MINOR</strong> — new feature or new target role/persona; backwards compatible</li>
+  <li><strong>PATCH</strong> — bug fix, copy edit, accessibility tightening, infrastructure tweak with no user-visible behavior change</li>
+</ul>
+
+<p class="meta">
+  When work lands: append bullets under the topmost <code>Unreleased</code> release. When promoting to production on Vercel: change the pill to <code>released</code>, stamp the date, and start a new <code>Unreleased</code> block above.
+</p>
+
+</body>
+</html>

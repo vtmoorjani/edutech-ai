@@ -35,11 +35,12 @@ export async function POST(request: Request) {
   }
 
   const { profile, gap } = parsed.data;
-  const shortlist = filterAndScore(profile, gap, 20);
+  const { courses: shortlist, constraint_notes } = filterAndScore(profile, gap, 20);
 
   if (shortlist.length === 0) {
     return NextResponse.json({
       recommendations: [],
+      constraint_notes,
       meta: { reason: "no_courses_fit_filters" },
     });
   }

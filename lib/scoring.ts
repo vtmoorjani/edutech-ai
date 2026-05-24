@@ -27,13 +27,19 @@ export type ScoredCourse = {
   };
 };
 
+export type FilterResult = {
+  courses: ScoredCourse[];
+  constraint_notes: string[];
+};
+
 export function filterAndScore(
   profile: ProfileInputT,
   gap: SkillGapResultT,
   topN = 20,
-): ScoredCourse[] {
+): FilterResult {
   const totalHoursAvailable = profile.weekly_hours * profile.timeline_weeks;
   const formatPrefs = new Set(profile.preferred_formats);
+  const constraint_notes: string[] = [];
 
   // Skill → gap weight (only count skills that actually have a gap)
   const gapWeights: Record<string, number> = {};
@@ -42,8 +48,16 @@ export function filterAndScore(
     gapWeights[g.skill_id] = LEVEL_WEIGHT[g.gap_size];
   }
   const totalGapWeight = Object.values(gapWeights).reduce((a, b) => a + b, 0);
-  if (totalGapWeight === 0) return [];
 
+  if (totalGapWeight === 0) {
+    constraint_notes.push(
+      "Your skills already meet the requirements for this role. Consider advanced courses to differentiate yourself.",
+    );
+    return { courses: [], constraint_notes };
+  }
+
+  let droppedByBudget = 0;
+  let droppedByTime = 0;
   const scored: ScoredCourse[] = [];
 
   for (const course of COURSES) {
@@ -53,8 +67,8 @@ export function filterAndScore(
       FORMAT_FIT[p]?.has(course.format),
     );
 
-    if (!fitsBudget || !fitsTime) continue; // hard filters
-    // Format is a soft signal — keep it but penalize below.
+    if (!fitsBudget) { droppedByBudget++; continue; }
+    if (!fitsTime) { droppedByTime++; continue; }
 
     const covered = course.skill_ids.filter((sid) => gapWeights[sid] != null);
     if (covered.length === 0) continue;
@@ -67,8 +81,7 @@ export function filterAndScore(
 
     // Soft modifiers
     if (!fitsFormat) score *= 0.85;
-    if (course.rating != null) score += (course.rating - 4) * 2; // small lift for high-rated
-    // Slight penalty for very short or very long courses relative to timeline
+    if (course.rating != null) score += (course.rating - 4) * 2;
     const idealHours = totalHoursAvailable * 0.4;
     const drift = Math.abs(course.duration_hours - idealHours) / idealHours;
     if (drift > 1.5) score *= 0.95;
@@ -86,6 +99,39 @@ export function filterAndScore(
     });
   }
 
+  if (scored.length === 0 && droppedByBudget > 0) {
+    const cheapest = COURSES
+      .filter((c) => c.duration_hours <= totalHoursAvailable)
+      .sort((a, b) => a.price_usd - b.price_usd)[0];
+    const suggestion = cheapest
+      ? `Increasing your budget to $${cheapest.price_usd} would unlock more options.`
+      : "";
+    constraint_notes.push(
+      `Limited options at your current budget ($${profile.budget_usd}). ${droppedByBudget} courses were filtered out. ${suggestion}`,
+    );
+  }
+
+  if (scored.length === 0 && droppedByTime > 0) {
+    constraint_notes.push(
+      `Your available time (${totalHoursAvailable} hours total) is limited. ${droppedByTime} courses were filtered out. Consider extending your timeline or increasing weekly hours.`,
+    );
+  }
+
+  // Deduplicate: if two courses share >80% skill overlap at the same level, keep the higher-scored one
   scored.sort((a, b) => b.score - a.score);
-  return scored.slice(0, topN);
+  const deduped: ScoredCourse[] = [];
+  for (const candidate of scored) {
+    const isDuplicate = deduped.some((kept) => {
+      const overlapCount = candidate.reasons.coveredSkillIds.filter((sid) =>
+        kept.reasons.coveredSkillIds.includes(sid),
+      ).length;
+      const overlapRatio =
+        overlapCount /
+        Math.max(candidate.reasons.coveredSkillIds.length, 1);
+      return overlapRatio > 0.8 && candidate.course.level === kept.course.level;
+    });
+    if (!isDuplicate) deduped.push(candidate);
+  }
+
+  return { courses: deduped.slice(0, topN), constraint_notes };
 }
